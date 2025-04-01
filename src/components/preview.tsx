@@ -40,9 +40,9 @@ const html = `
 const Preview: React.FC<PreviewProps> = ({ code, err }) => {
   const iframeRef = useRef<any>();
 
-  useEffect(() => {
-    iframeRef.current.srcdoc = html;
-  }, [code]);
+  // useEffect(() => {
+  //   // iframeRef.current.srcdoc = html;
+  // }, [code]);
 
   const loadHandler = () => {
     // Emitting the Event with postMessage to iframe
