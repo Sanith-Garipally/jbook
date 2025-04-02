@@ -6,6 +6,7 @@ import { Cell } from '../state';
 import { useActions } from '../hooks/use-actions';
 import { useTypedSelector } from '../hooks/use-typed-selector';
 import './code-cell.css';
+import { useCummulativeCode } from './use-cummulative-code';
 interface CodeCellProps {
   cell: Cell;
 }
@@ -13,49 +14,16 @@ interface CodeCellProps {
 const CodeCell: React.FC<CodeCellProps> = ({ cell }) => {
   const { updateCell, createBundle } = useActions();
   const bundle = useTypedSelector((state) => state.bundles[cell.id]);
-  const cummulativeCode = useTypedSelector((state) => {
-    const { data, order } = state.cells;
-    const orderedCells = order.map((id) => data[id]);
-
-    const priorCodeCells = [
-      `
-        const show = (value) => {
-          const root = document.querySelector('#root');
-          if(typeof value === 'object') {
-            if(value.$$typeof && value.props) {
-              ReactDOM.createRoot(root).render(value);
-            } else {
-              root.innerHTML = JSON.stringify(value);
-             } 
-          } else { 
-            root.innerHTML = value
-          }
-        }
-      `
-    ];
-
-    for (let c of orderedCells) {
-      if (c.type === 'code') {
-        priorCodeCells.push(c.content);
-      };
-
-      if (c.id === cell.id) {
-        break;
-      }
-    }
-
-    return priorCodeCells
-
-  })
+  const cummulativeCode = useCummulativeCode(cell.id);
 
   useEffect(() => {
     if (!bundle) {
-      createBundle(cell.id, cummulativeCode.join('\n'));
+      createBundle(cell.id, cummulativeCode);
       return;
     }
 
     const timer = setTimeout(() => {
-      createBundle(cell.id, cummulativeCode.join('\n'));
+      createBundle(cell.id, cummulativeCode);
     }, 750);
 
     // Continuos calling of useEffect will return
@@ -63,7 +31,7 @@ const CodeCell: React.FC<CodeCellProps> = ({ cell }) => {
     return () => {
       clearTimeout(timer);
     };
-  }, [cummulativeCode.join('\n'), cell.id, createBundle]);
+  }, [cummulativeCode, cell.id, createBundle]);
 
   return (
     <Resizable direction='vertical'>
